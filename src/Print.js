@@ -61,9 +61,16 @@ const TagPrint = (props) => {
     console.log(ipcRenderer)
     if (!ipcRenderer) return;
     ipcRenderer.send('allPrint');
-    ipcRenderer.on('printName', (event, data: []) => {
+    ipcRenderer.on('printName', (event, data) => {
       console.log(data); // data就是返回的打印机数据列表
-      changeLoginInfo('dataItem', data)
+      // 过滤可用打印机
+      const list=data.filter(element => element.status === 0);
+      // 1.判断是否有打印服务
+      if (list.length <= 0) {
+        message.warning('打印机异常，请检查')
+      } else {
+        changeLoginInfo('dataItem', list)
+      }
     });
     ipcRenderer.on('print-error', (event, err) => {
       message.error(err);
@@ -95,7 +102,6 @@ const TagPrint = (props) => {
       <h5>打印机选择</h5>
       <Select defaultValue="" style={{ width: 120 }} onChange={handleChange}>
         {state.dataItem.map((item) => {
-          // eslint-disable-next-line react/jsx-key
           return (<Option key={item.name} value={item.name}>{item.name}</Option>);
         })}
       </Select>
